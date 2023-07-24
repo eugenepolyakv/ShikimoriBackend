@@ -1,4 +1,6 @@
+require('dotenv').config();
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const authRouter = require('./authRouter');
 const cors = require('cors');
@@ -6,19 +8,22 @@ const jwt = require('jsonwebtoken');
 const app = express();
 
 app.use(express.json());
-app.use('/auth', authRouter);
+app.use(cookieParser());
+app.use(cors({ origin: 'http://127.0.0.1:5173', credentials: true }));
+app.use('/api', authRouter);
 // app.use(
 //     cors({
 //         origin: '*',
 //     })
 // );
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 const start = async () => {
     try {
-        await mongoose.connect(
-            `mongodb+srv://testUser:123@cluster0.p1gz1gx.mongodb.net/`
-        );
+        await mongoose.connect(process.env.DB_URL, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
         app.listen(PORT, () => {
             console.log('Listening on port', PORT);
         });
