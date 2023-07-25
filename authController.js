@@ -2,8 +2,10 @@ const User = require('./models/User');
 const Role = require('./models/Role');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+// const jwt
 const { secret } = require('./config');
 const tokenService = require('./service/token-service');
+
 // const generateAccessToken = (id, roles) => {
 //     const payload = {
 //         id,
@@ -69,8 +71,11 @@ class authController {
                 await res.cookie('refreshToken', tokens.refreshToken, {
                     maxAge: 30 * 24 * 60 * 60 * 1000,
                     httpOnly: true,
+                    sameSite: 'None',
+                    secure: true,
                 });
                 return res.json({
+                    tokens,
                     username,
                 });
             } else {
@@ -103,14 +108,20 @@ class authController {
     }
     async refresh(req, res) {
         try {
+            // console.log('token expired, getting refresh token');
             const { refreshToken } = req.cookies;
+            if (!refreshToken) {
+                return res.status(400).json({ message: 'Unauthorized user' });
+            }
             const { userData, tokenFromDb } = await tokenService.refresh(
                 refreshToken
             );
+            // console.log('refreshToken');
+            // console.log(refreshToken);
             if (!userData || !tokenFromDb) {
-                res.status(400).json({ message: 'Unauthorized user' });
+                return res.status(400).json({ message: 'Invalid Token' });
             }
-            const { identifier, roles } = await User.findById(
+            const { _id: identifier, roles } = await User.findById(
                 userData.identifier
             );
             const tokens = tokenService.generateTokens({
@@ -121,13 +132,40 @@ class authController {
             await res.cookie('refreshToken', tokens.refreshToken, {
                 maxAge: 30 * 24 * 60 * 60 * 1000,
                 httpOnly: true,
+                sameSite: 'None',
+                secure: true,
             });
             return res.json({
-                token: tokens.refreshToken,
+                tokens,
             });
         } catch (e) {
             console.log(e);
             res.status(400).json({ message: 'Refresh error' });
+        }
+    }
+    // async checkIfExpired(req, res) {
+    //     try {
+    //         const { refreshToken } = req.cookies;
+    //         console.log(JSON.parse(atob(refreshToken.split('.')[1])));
+    //         console.log(
+    //             jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+    //         );
+    //     } catch (e) {
+    //         console.log(e);
+    //     }
+    // }
+    async userInfo(req, res) {
+        try {
+            const { refreshToken } = req.cookies;
+            const { identifier } = jwt.verify(
+                refreshToken,
+                process.env.JWT_REFRESH_SECRET
+            );
+            const { username, roles } = await User.findById(identifier);
+            return res.json({ username, roles });
+        } catch (e) {
+            console.log(e);
+            return res.status(400).json({ message: 'User info error' });
         }
     }
 }
