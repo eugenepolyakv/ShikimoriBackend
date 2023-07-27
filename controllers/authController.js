@@ -1,10 +1,10 @@
-const User = require('./models/User');
-const Role = require('./models/Role');
+const User = require('../models/User');
+const Role = require('../models/Role');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 // const jwt
-const { secret } = require('./config');
-const tokenService = require('./service/token-service');
+const { secret } = require('../config/config');
+const tokenService = require('../services/token-service');
 
 // const generateAccessToken = (id, roles) => {
 //     const payload = {
@@ -90,7 +90,10 @@ class authController {
         try {
             const { refreshToken } = req.cookies;
             const token = await tokenService.logout(refreshToken);
-            res.clearCookie('refreshToken');
+            res.clearCookie('refreshToken', {
+                sameSite: 'None',
+                secure: true,
+            });
             return res.json(token);
         } catch (e) {
             console.log(e);

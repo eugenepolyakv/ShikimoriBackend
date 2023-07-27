@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const tokenService = require('../service/token-service');
-const { refresh } = require('../authController');
+const tokenService = require('../services/token-service');
+const { refresh } = require('../controllers/authController');
 module.exports = async function checkIfTokenValidMiddleware(req, res, next) {
     if (req.method === 'OPTIONS') {
         next();
