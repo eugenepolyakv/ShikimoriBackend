@@ -3,6 +3,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const authRouter = require('../routes/authRouter');
+const animeRouter = require('../routes/animeRouter');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const app = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: 'http://127.0.0.1:5173', credentials: true }));
 app.use('/api', authRouter);
+app.use('/api', animeRouter);
 // app.use(
 //     cors({
 //         origin: '*',

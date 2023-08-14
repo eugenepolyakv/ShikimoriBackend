@@ -31,6 +31,7 @@ class authController {
                 username,
                 password: hashPassword,
                 roles: [userRole.value],
+                registrationDate: Date(),
             });
             await user.save();
             const { _id: identifier, roles } = user;
@@ -77,6 +78,7 @@ class authController {
                 return res.json({
                     tokens,
                     username,
+                    regDate: user.registrationDate,
                 });
             } else {
                 return res.status(400).json({ message: 'Incorrect password' });
@@ -164,8 +166,10 @@ class authController {
                 refreshToken,
                 process.env.JWT_REFRESH_SECRET
             );
-            const { username, roles } = await User.findById(identifier);
-            return res.json({ username, roles });
+            const { username, roles, registrationDate } = await User.findById(
+                identifier
+            );
+            return res.json({ username, roles, registrationDate });
         } catch (e) {
             console.log(e);
             return res.status(400).json({ message: 'User info error' });
